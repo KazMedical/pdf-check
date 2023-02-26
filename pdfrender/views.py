@@ -1,0 +1,30 @@
+from django.template.loader import get_template
+from django.http import HttpResponse
+from weasyprint import HTML, CSS
+from weasyprint.text.fonts import FontConfiguration
+
+from django.conf import settings
+
+
+def generate_pdf(request):
+    # Get the report object
+    font_config = FontConfiguration()
+    # Generate the PDF file
+    html_template = get_template('check/report.html')
+    html_string = html_template.render({'report': {"foo": "bar"}})
+    html = HTML(string=html_string)
+    # css_path = staticfiles_storage.path('css/check.css')
+    css_path = settings.BASE_DIR / 'static/css/check.css'
+    # check_css_path = staticfiles_storage.path('css/stylesheet.css')
+    check_css_path = settings.BASE_DIR / 'static/css/stylesheet.css'
+    css = CSS(filename=css_path, font_config=font_config)
+    check_css = CSS(filename=check_css_path, font_config=font_config)
+    # result = BytesIO()
+    pdf_file = html.write_pdf(
+        # result,
+        stylesheets=[css, check_css])
+    # Save the PDF file to the model
+    # Payment.objects.get(id=24).pdf_file.save('report.pdf', pdf_file, save=True)
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    # response['Content-Disposition'] = 'attachment; filename="my_pdf.pdf"'
+    return response
